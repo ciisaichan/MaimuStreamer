@@ -1,0 +1,6 @@
+{
+  "sqlite_db": "data.db",
+  "storage_dir": "record",
+  "rooms_check_delay": 30000,
+  "bili_tasks_check_delay": 3000
+}
