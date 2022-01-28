@@ -136,6 +136,28 @@ Multithreaded and multiplatform live streaming recorder.
 
 
 
+### 配置文件
+
+```json
+{
+  "sqlite_db": "data.db",
+  "storage_dir": "record",
+  "rooms_check_delay": 30000,
+  "bili_tasks_check_delay": 3000
+}
+```
+
+`sqlite_db`：数据库文件路径
+
+`storage_dir`：录播存储目录路径（目录下需建立对应平台的目录）
+
+`rooms_check_delay`：直播间状态检查间隔（单位：毫秒）
+
+`bili_tasks_check_delay`：BiliBili任务列表检查间隔（单位：毫秒）
+
+
+
 ### 关于开发
 
 如果需要接入其他自动化程序，可以直接操作 sqlite 数据库，无需通过命令调用（上述增删改查操作也是通过操作数据库方式实现）。
+
