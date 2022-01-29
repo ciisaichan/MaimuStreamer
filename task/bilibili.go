@@ -70,9 +70,8 @@ func BiliTaskListCheck() {
 				}
 			} else {
 				if v.Downloader.Error != nil {
-					logger.L.Error("[BiliBili] Unknown error in Downloader: " + v.Downloader.Error.Error())
+					logger.L.Error("[BiliBili] " + v.Name + ": Unknown error in Downloader: " + v.Downloader.Error.Error())
 					delete(biliTaskList, k)
-					poolWait.Done()
 				}
 			}
 		} else {
@@ -103,7 +102,7 @@ func BiliTaskListCheck() {
 
 func biliTaskExit() {
 	for _, v := range biliTaskList {
-		if v.Downloader.HttpResponse != nil{
+		if v.Downloader.HttpResponse != nil {
 			v.Downloader.Stop()
 		}
 	}

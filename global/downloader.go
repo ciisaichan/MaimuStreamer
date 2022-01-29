@@ -1,33 +1,34 @@
 package global
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"os"
 )
 
 type FileDownloader struct {
-	Reader *Reader
+	Reader       *Reader
 	HttpResponse *http.Response
-	Url string
-	FileName string
-	Downloading bool
-	Error error
+	Url          string
+	FileName     string
+	Downloading  bool
+	Error        error
 }
 
 type Reader struct {
 	IoReader io.Reader
-	Total int64
-	Current int64
+	Total    int64
+	Current  int64
 }
 
-func (r *Reader) Read(p []byte) (n int, err error){
+func (r *Reader) Read(p []byte) (n int, err error) {
 	n, err = r.IoReader.Read(p)
 
 	r.Current += int64(n)
 	//fmt.Printf("\r已下载: %.2f MB", float64(r.Current)/1024/1024)
 
-	return n,err
+	return n, err
 }
 
 func (downloader *FileDownloader) Start() {
@@ -47,7 +48,7 @@ func (downloader *FileDownloader) downloadProgress() {
 		return
 	}
 
-	request.Header.Set("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36 Edg/97.0.1072.62")
+	request.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36 Edg/97.0.1072.62")
 
 	downloader.HttpResponse, err = client.Do(request)
 	if err != nil {
@@ -55,27 +56,24 @@ func (downloader *FileDownloader) downloadProgress() {
 		return
 	}
 	defer downloader.HttpResponse.Body.Close()
-	/*
-	downloader.HttpResponse, err = http.Get(downloader.Url)
-	defer func() {_ = downloader.HttpResponse.Body.Close()}()
-	if err != nil {
-		downloader.finishProgress(err)
+
+	if downloader.HttpResponse.StatusCode != 200 {
+		downloader.finishProgress(errors.New("HTTP status exception: " + downloader.HttpResponse.Status))
 		return
 	}
-	 */
 
 	f, err2 := os.Create(downloader.FileName)
 	if err2 != nil {
 		downloader.finishProgress(err2)
 		return
 	}
-	defer func() {_ = f.Close()}()
+	defer func() { _ = f.Close() }()
 
 	downloader.Downloading = true
 
 	downloader.Reader = &Reader{
 		IoReader: downloader.HttpResponse.Body,
-		Total: downloader.HttpResponse.ContentLength,
+		Total:    downloader.HttpResponse.ContentLength,
 	}
 
 	_, err = io.Copy(f, downloader.Reader)
@@ -89,4 +87,10 @@ func (downloader *FileDownloader) downloadProgress() {
 func (downloader *FileDownloader) finishProgress(err error) {
 	downloader.Error = err
 	downloader.Downloading = false
+	if FileSize(downloader.FileName) == 0 {
+		err := os.Remove(downloader.FileName)
+		if err != nil {
+			return
+		}
+	}
 }
